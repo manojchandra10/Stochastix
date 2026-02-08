@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  # API
+  cortex:
+    build: ./cortex
+    container_name: stochastix_backend
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    volumes:
+      - ./cortex/models:/app/cortex/models
+      - ./cortex:/app/cortex
+    ports:
+      - "8000:8000"
+    restart: always
+
+  # Frontend
+  interface:
+    build: ./interface
+    container_name: stochastix_frontend
+    depends_on:
+      - cortex
+    ports:
+      - "3000:80"
+    restart: always
+
+  volumes:
+    postgres_data:
+
+  # Database
+  db:
+    image: postgres:15
+    container_name: stochastix_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
