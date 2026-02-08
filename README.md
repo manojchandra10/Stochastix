@@ -2,7 +2,7 @@
 
 Stochastix is a full-stack financial intelligence web application designed to help international students and professionals navigate currency volatility. Born from the real-world challenge of timing tuition payments and student loan transfers, Stochastix provides 30-day neural forecasts for major currency pairs (GBP, USD, EUR, INR, and more).
 
-[See Preview](https://github.com/manojchandra10/Stochastix/blob/main/Stochastix%20Preview.pdf) or [View Live WebApp](https://www.deltaconvert.com/exchange-rate-prediction)
+[See Preview](https://github.com/manojchandra10/Stochastix/blob/main/Stochastix-Preview.pdf) or [View Live WebApp](https://www.deltaconvert.com/exchange-rate-prediction)
 
 ---
 
