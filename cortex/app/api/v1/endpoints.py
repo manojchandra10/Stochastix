@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Depends, Header, status
+from pydantic import BaseModel, field_validator
 import os
 import joblib
 import numpy as np
@@ -9,13 +9,21 @@ import keras
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from cortex.app.engine.sentiment import get_market_sentiment
+# from cortex.app.engine.sentiment import get_market_sentiment
 from cortex.app.core.database import get_db
 from cortex.app.core.models import PredictionAudit
 from cortex.app.engine.auditor import calculate_trust_label
 from cortex.app.engine.fetcher import fetch_data
 
 router = APIRouter()
+logger = logging.getLogger("cortex.api")
+
+MODEL_CACHE = {}
+SUPPORTED_CURRENCIES = {
+    "GBP", "CHF", "USD", "INR", "JPY", "CZK", "DKK", "HUF", "PLN", "RON", 
+    "SEK", "ISK", "NOK", "TRY", "AUD", "BRL", "CAD", "CNY", "HKD", "IDR", 
+    "ILS", "KRW", "MXN", "MYR", "NZD", "PHP", "SGD", "THB", "ZAR", "EUR"
+}
 
 class PredictionRequest(BaseModel):
     from_currency: str
@@ -23,7 +31,8 @@ class PredictionRequest(BaseModel):
     days: int = 30
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_DIR = os.path.join(BASE_DIR, "../../../models")
+# MODEL_DIR = os.path.join(BASE_DIR, "../../../models")
+MODEL_DIR = "/app/cortex/models"
 
 def get_model_prediction(target_curr: str, days: int, window_size: int = 180):
     if target_curr == "EUR": return None, None
@@ -162,10 +171,3 @@ def get_scoreboard(db: Session = Depends(get_db)):
                 "status": "success" if "Matched" in (latest.trust_label or "") else "danger"
             })
     return {"scoreboard": results}
-
-@router.post("/sentiment")
-def analyze_sentiment(request: PredictionRequest):
-    try:
-        return {"pair": f"{request.from_currency}/{request.to_currency}", "sentiment": get_market_sentiment(request.from_currency)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
