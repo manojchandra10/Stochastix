@@ -1,33 +1,53 @@
 import { useState, useEffect } from 'react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine
-} from 'recharts';
-import {
-  fetchForecast,
-  fetchSentiment,
-  fetchScoreboard,
-  type ForecastPoint,
-  type SentimentResponse
-} from './services/api';
-import {
-  TrendingUp,
-  Activity,
-  BarChart3,
-  Settings,
-  HelpCircle,
-  Moon,
-  Sun,
-  Share2,
-  Newspaper,
-  ArrowRightLeft
+import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
+       } from 'recharts';
+import {fetchForecast, fetchScoreboard, type ForecastPoint} from './services/api';
+import {TrendingUp, Activity, BarChart3, Settings, HelpCircle, Moon, Sun, Share2, ArrowRightLeft
 } from 'lucide-react';
+
+// Config and Data
+const getFlagUrl = (code: string) => {
+  const map: Record<string, string> = {
+    GBP: 'gb', INR: 'in', USD: 'us', EUR: 'eu', JPY: 'jp', CHF: 'ch',
+    AUD: 'au', CAD: 'ca', CNY: 'cn', HKD: 'hk', NZD: 'nz', SGD: 'sg',
+    ZAR: 'za', SEK: 'se', NOK: 'no', DKK: 'dk', PLN: 'pl', HUF: 'hu',
+    CZK: 'cz', RON: 'ro', ISK: 'is', TRY: 'tr', BRL: 'br', IDR: 'id',
+    ILS: 'il', KRW: 'kr', MXN: 'mx', MYR: 'my', PHP: 'ph', THB: 'th'
+  };
+  return `https://flagcdn.com/w40/${map[code] || 'un'}.png`;
+};
+const CURRENCIES = [
+  { code: 'GBP', name: 'British Pound', keywords: 'uk, england, sterling, united kingdom' },
+  { code: 'INR', name: 'Indian Rupee', keywords: 'india, bharat' },
+  { code: 'USD', name: 'US Dollar', keywords: 'usa, america, united states' },
+  { code: 'EUR', name: 'Euro', keywords: 'europe, germany, france, italy, spain' },
+  { code: 'JPY', name: 'Japanese Yen', keywords: 'japan, asia' },
+  { code: 'CHF', name: 'Swiss Franc', keywords: 'switzerland, swiss' },
+  { code: 'AUD', name: 'Australian Dollar', keywords: 'australia, oz' },
+  { code: 'CAD', name: 'Canadian Dollar', keywords: 'canada' },
+  { code: 'CNY', name: 'Chinese Yuan', keywords: 'china, renminbi' },
+  { code: 'HKD', name: 'Hong Kong Dollar', keywords: 'hong kong' },
+  { code: 'NZD', name: 'New Zealand Dollar', keywords: 'new zealand, kiwi' },
+  { code: 'SGD', name: 'Singapore Dollar', keywords: 'singapore' },
+  { code: 'ZAR', name: 'South African Rand', keywords: 'south africa, africa' },
+  { code: 'SEK', name: 'Swedish Krona', keywords: 'sweden' },
+  { code: 'NOK', name: 'Norwegian Krone', keywords: 'norway' },
+  { code: 'DKK', name: 'Danish Krone', keywords: 'denmark' },
+  { code: 'PLN', name: 'Polish Zloty', keywords: 'poland' },
+  { code: 'HUF', name: 'Hungarian Forint', keywords: 'hungary' },
+  { code: 'CZK', name: 'Czech Koruna', keywords: 'czech republic' },
+  { code: 'RON', name: 'Romanian Leu', keywords: 'romania' },
+  { code: 'ISK', name: 'Icelandic Krona', keywords: 'iceland' },
+  { code: 'TRY', name: 'Turkish Lira', keywords: 'turkey' },
+  { code: 'BRL', name: 'Brazilian Real', keywords: 'brazil' },
+  { code: 'IDR', name: 'Indonesian Rupiah', keywords: 'indonesia' },
+  { code: 'ILS', name: 'Israeli Shekel', keywords: 'israel' },
+  { code: 'KRW', name: 'South Korean Won', keywords: 'korea' },
+  { code: 'MXN', name: 'Mexican Peso', keywords: 'mexico' },
+  { code: 'MYR', name: 'Malaysian Ringgit', keywords: 'malaysia' },
+  { code: 'PHP', name: 'Philippine Peso', keywords: 'philippines' },
+  { code: 'THB', name: 'Thai Baht', keywords: 'thailand' }
+];
 
 // SCORECARD COMPONENT
 const OracleScorecard = ({ isSidebar = false }: { isSidebar?: boolean }) => {
@@ -478,49 +498,6 @@ function App() {
                   </tbody>
                 </table>
               </div>
-
-              {/*SENTIMENT CARD*/}
-              {sentiment && (
-                <div
-                  className="data-card sentiment-card"
-                  style={{
-                    gridColumn: '1 / -1',
-                    background: 'var(--bg-input)',
-                    padding: '25px',
-                    borderRadius: '12px',
-                    border: '1px solid var(--border-color)'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-                    <Newspaper size={24} color="var(--brand-orange)" />
-                    <h3 style={{ margin: 0, textTransform: 'uppercase', fontSize: '1rem' }}>Market Sentiment</h3>
-                  </div>
-                  <div className="sentiment-row" style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-                    <div
-                      style={{
-                        fontSize: '1.5rem',
-                        fontWeight: 900,
-                        color: getMoodColor(sentiment.score),
-                        border: `2px solid ${getMoodColor(sentiment.score)}`,
-                        padding: '10px 20px',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      {sentiment.mood}
-                    </div>
-                    <div className="sentiment-copy" style={{ flex: 1, minWidth: '220px' }}>
-                      <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '5px' }}>
-                        Analyzed <strong>{sentiment.headline_count}</strong> recent headlines for {fromCurr}.
-                      </div>
-                      {sentiment.top_headline && (
-                        <div style={{ fontStyle: 'italic', fontSize: '0.95rem', fontWeight: 500 }}>
-                          "{sentiment.top_headline}"
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
